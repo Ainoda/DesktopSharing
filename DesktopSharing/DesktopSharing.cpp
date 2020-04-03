@@ -36,60 +36,75 @@ bool DesktopSharing::init(AVConfig *config)
 	_videoConfig.bitrate = _avconfig.bitrate;
 	_videoConfig.gop = _avconfig.gop;
 
-	if (_screenCapture.init() < 0)
+	// 初始化视频捕获器
+	if (_avconfig.dataFlag & DataFlag_Video)
 	{
-		return false;
+		if (_screenCapture.init() < 0)
+		{
+			return false;
+		}
 	}
 
-	if (AudioCapture::instance().init() < 0)
+	// 初始化音频捕获器
+	if (_avconfig.dataFlag & DataFlag_Audio)
 	{
-		return false;
+		if (AudioCapture::instance().init() < 0)
+		{
+			return false;
+		}
 	}
 
 	/* audio config */
 	_audioConfig.samplerate = AudioCapture::instance().getSamplerate();
 	_audioConfig.channels = AudioCapture::instance().getChannels();
 
-	_videoConfig.width = _screenCapture.getWidth();
-	_videoConfig.height = _screenCapture.getHeight();
-
-	if (_avconfig.codec == "h264_nvenc")
+	if (_avconfig.dataFlag & DataFlag_Video)
 	{
-		if (nvenc_info.is_supported())
+		_videoConfig.width = _screenCapture.getWidth();
+		_videoConfig.height = _screenCapture.getHeight();
+
+		// 使用硬编码（NVIDIA显卡）
+		if (_avconfig.codec == "h264_nvenc")
 		{
-			_nvenc_data = nvenc_info.create();
+			if (nvenc_info.is_supported())
+			{
+				_nvenc_data = nvenc_info.create();
+			}
+
+			if (_nvenc_data != nullptr)
+			{
+				encoder_config nvenc_config;
+				nvenc_config.codec = "h264";
+				nvenc_config.format = DXGI_FORMAT_B8G8R8A8_UNORM;
+				nvenc_config.width = _videoConfig.width;
+				nvenc_config.height = _videoConfig.height;
+				nvenc_config.framerate = _videoConfig.framerate;
+				nvenc_config.gop = _videoConfig.gop;
+				nvenc_config.bitrate = _videoConfig.bitrate;
+				if (!nvenc_info.init(_nvenc_data, &nvenc_config))
+				{
+					nvenc_info.destroy(&_nvenc_data);
+					_nvenc_data = nullptr;
+				}
+			}
 		}
 
-		if (_nvenc_data != nullptr)
+		// 不存在NVIDIA显示时，使用软编码器
+		if (_nvenc_data == nullptr)
 		{
-			encoder_config nvenc_config;
-			nvenc_config.codec = "h264";
-			nvenc_config.format = DXGI_FORMAT_B8G8R8A8_UNORM;
-			nvenc_config.width = _videoConfig.width;
-			nvenc_config.height = _videoConfig.height;
-			nvenc_config.framerate = _videoConfig.framerate;
-			nvenc_config.gop = _videoConfig.gop;
-			nvenc_config.bitrate = _videoConfig.bitrate;
-			if (!nvenc_info.init(_nvenc_data, &nvenc_config))
+			if (!H264Encoder::instance().init(_videoConfig))
 			{
-				nvenc_info.destroy(&_nvenc_data);
-				_nvenc_data = nullptr;
+				return false;
 			}
 		}
 	}
 
-	
-	if(_nvenc_data == nullptr)
+	if (_avconfig.dataFlag & DataFlag_Audio)
 	{
-		if (!H264Encoder::instance().init(_videoConfig))
+		if (!AACEncoder::instance().init(_audioConfig))
 		{
 			return false;
 		}
-	}
-
-	if (!AACEncoder::instance().init(_audioConfig))
-	{
-		return false;
 	}
 
 	_isInitialized = true;
@@ -147,19 +162,27 @@ void DesktopSharing::start()
 	
 	_isRunning = true;
 
-	if (_screenCapture.start() == 0)
+	// 启动视频捕获线程
+	if (_avconfig.dataFlag & DataFlag_Video)
 	{
-		if (_screenCapture.isCapturing())
+		if (_screenCapture.start() == 0)
 		{
-			_videoThread.reset(new std::thread(&DesktopSharing::pushVideo, this));
+			if (_screenCapture.isCapturing())
+			{
+				_videoThread.reset(new std::thread(&DesktopSharing::pushVideo, this));
+			}
 		}
 	}
 
-	if (AudioCapture::instance().start() == 0)
+	// 启动音频捕获线程
+	if (_avconfig.dataFlag & DataFlag_Audio)
 	{
-		if (AudioCapture::instance().isCapturing())
+		if (AudioCapture::instance().start() == 0)
 		{
-			_audioThread.reset(new std::thread(&DesktopSharing::pushAudio, this));
+			if (AudioCapture::instance().isCapturing())
+			{
+				_audioThread.reset(new std::thread(&DesktopSharing::pushAudio, this));
+			}
 		}
 	}
 }
@@ -170,17 +193,26 @@ void DesktopSharing::stop()
 	if (_isRunning)
 	{
 		_isRunning = false;
-		if (_screenCapture.isCapturing())
+
+		// 停止视频捕获
+		if (_avconfig.dataFlag & DataFlag_Video)
 		{
-			_screenCapture.stop();
-			_videoThread->join();
+			if (_screenCapture.isCapturing())
+			{
+				_screenCapture.stop();
+				_videoThread->join();
+			}
 		}
 
-		if (AudioCapture::instance().isCapturing())
+		// 停止音频捕获
+		if (_avconfig.dataFlag & DataFlag_Audio)
 		{
-			AudioCapture::instance().stop();
-			_audioThread->join();
-		}	
+			if (AudioCapture::instance().isCapturing())
+			{
+				AudioCapture::instance().stop();
+				_audioThread->join();
+			}
+		}
 	}
 }
 
@@ -201,8 +233,10 @@ void DesktopSharing::startRtspServer(std::string suffix, uint16_t rtspPort)
 	_ip = "0.0.0.0"; //xop::NetInterface::getLocalIPAddress(); //"127.0.0.1";
 	_rtspServer.reset(new xop::RtspServer(_eventLoop.get(), _ip, rtspPort));
 	xop::MediaSession* session = xop::MediaSession::createNew(suffix);
-	session->addMediaSource(xop::channel_0, xop::H264Source::createNew());
-	session->addMediaSource(xop::channel_1, xop::AACSource::createNew(_audioConfig.samplerate, _audioConfig.channels, false));
+	if (_avconfig.dataFlag & DataFlag_Video)
+		session->addMediaSource(xop::channel_0, xop::H264Source::createNew());
+	if (_avconfig.dataFlag & DataFlag_Audio)
+		session->addMediaSource(xop::channel_1, xop::AACSource::createNew(_audioConfig.samplerate, _audioConfig.channels, false));
 	session->setNotifyCallback([this](xop::MediaSessionId sessionId, uint32_t numClients) {
 		this->_clients = numClients;
 	});
@@ -227,8 +261,10 @@ void DesktopSharing::startRtspPusher(const char* url)
 
 	_rtspPusher.reset(new xop::RtspPusher(_eventLoop.get()));
 	xop::MediaSession *session = xop::MediaSession::createNew();
-	session->addMediaSource(xop::channel_0, xop::H264Source::createNew());
-	session->addMediaSource(xop::channel_1, xop::AACSource::createNew(_audioConfig.samplerate, _audioConfig.channels, false));
+	if (_avconfig.dataFlag & DataFlag_Video)
+		session->addMediaSource(xop::channel_0, xop::H264Source::createNew());
+	if (_avconfig.dataFlag & DataFlag_Audio)
+		session->addMediaSource(xop::channel_1, xop::AACSource::createNew(_audioConfig.samplerate, _audioConfig.channels, false));
 	_rtspPusher->addMeidaSession(session);
 	if (_rtspPusher->openUrl(url, 3000) != 0)
 	{

@@ -10,6 +10,7 @@
 using namespace std;
 
 H264Encoder::H264Encoder()
+	: Encoder()
 {
 
 }
@@ -52,7 +53,7 @@ bool H264Encoder::init(struct VideoConfig vc)
 		LOG("avcodec_alloc_context3() failed.");
 		return false;
 	}
-	
+
 	_vCodecCtx->width = _videoConfig.width;
 	_vCodecCtx->height = _videoConfig.height;
 	_vCodecCtx->time_base = { 1,  (int)_videoConfig.framerate };
@@ -76,9 +77,11 @@ bool H264Encoder::init(struct VideoConfig vc)
 
 	av_opt_set(_vCodecCtx->priv_data, "tune", "zerolatency", 0);
 
-	if (avcodec_open2(_vCodecCtx, codec, NULL) != 0)
+	auto ret = avcodec_open2(_vCodecCtx, codec, NULL);
+	if (ret != 0)
 	{
 		LOG("avcodec_open2() failed.\n");
+		printError(ret);
 		return false;
 	}
 
@@ -123,8 +126,8 @@ AVPacket* H264Encoder::encodeVideo(const uint8_t *bgra, uint32_t width, uint32_t
 {
 	if (_swsCtx == nullptr)
 	{
-		_swsCtx = sws_getContext(width, height, AV_PIX_FMT_BGRA,_videoConfig.width, _videoConfig.height,
-								AV_PIX_FMT_YUV420P, SWS_BICUBIC,NULL, NULL, NULL);
+		_swsCtx = sws_getContext(width, height, AV_PIX_FMT_BGRA, _videoConfig.width, _videoConfig.height,
+			AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
 		if (_swsCtx == nullptr)
 		{
 			LOG("sws_getContext() failed, fmt:%s s:%dx%d -> fmt:%s s:%dx%d\n",
@@ -141,9 +144,11 @@ AVPacket* H264Encoder::encodeVideo(const uint8_t *bgra, uint32_t width, uint32_t
 		_yuvFrame->width = _videoConfig.width;
 		_yuvFrame->height = _videoConfig.height;
 		_yuvFrame->pts = 0;
-		if (av_frame_get_buffer(_yuvFrame, 32) != 0)
+		auto ret = av_frame_get_buffer(_yuvFrame, 32);
+		if (ret != 0)
 		{
 			LOG("av_frame_get_buffer() failed.\n");
+			printError(ret);
 			return nullptr;
 		}
 	}
@@ -152,7 +157,7 @@ AVPacket* H264Encoder::encodeVideo(const uint8_t *bgra, uint32_t width, uint32_t
 	data[0] = (uint8_t*)bgra;
 	int insize[AV_NUM_DATA_POINTERS] = { 0 };
 	insize[0] = width * 4;
-	int outHeight = sws_scale(_swsCtx, data, insize, 0, height,_yuvFrame->data, _yuvFrame->linesize);
+	int outHeight = sws_scale(_swsCtx, data, insize, 0, height, _yuvFrame->data, _yuvFrame->linesize);
 	if (outHeight < 0)
 	{
 		LOG("sws_scale() failed.\n");
@@ -161,22 +166,24 @@ AVPacket* H264Encoder::encodeVideo(const uint8_t *bgra, uint32_t width, uint32_t
 
 	if (pts != 0)
 	{
-		_yuvFrame->pts = pts;	
+		_yuvFrame->pts = pts;
 	}
 	else
 	{
 		_yuvFrame->pts = _pts++;
 	}
 
-	if (avcodec_send_frame(_vCodecCtx, _yuvFrame) < 0)
+	auto ret = avcodec_send_frame(_vCodecCtx, _yuvFrame);
+	if (ret < 0)
 	{
 		LOG("avcodec_send_frame() failed.\n");
+		printError(ret);
 		return nullptr;
 	}
 
 	av_packet_unref(_vPkt);
 
-	int ret = avcodec_receive_packet(_vCodecCtx, _vPkt);
+	ret = avcodec_receive_packet(_vCodecCtx, _vPkt);
 	if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
 	{
 		return nullptr;
@@ -184,6 +191,7 @@ AVPacket* H264Encoder::encodeVideo(const uint8_t *bgra, uint32_t width, uint32_t
 	else if (ret < 0)
 	{
 		LOG("avcodec_receive_packet() failed.");
+		printError(ret);
 		return nullptr;
 	}
 

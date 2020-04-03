@@ -16,6 +16,7 @@ extern "C"
 #include <libswscale/swscale.h>
 #include <libavutil/opt.h>
 }
+#include "Encoder.h"
 
 struct AudioConfig
 {
@@ -25,7 +26,7 @@ struct AudioConfig
 };
 
 
-class AACEncoder
+class AACEncoder : public Encoder
 {
 public:
 	AACEncoder & operator=(const AACEncoder &) = delete;

@@ -289,12 +289,14 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 	{		
 		if (enc->inputTexture.Get())
 		{
-			enc->inputTexture->Release();
+//			enc->inputTexture->Release();
+			enc->inputTexture.Reset();
 		}
 
 		if (enc->keyedMutex.Get())
 		{
-			enc->keyedMutex->Release();
+//			enc->keyedMutex->Release();
+			enc->keyedMutex.Reset();
 		}
 
 		HRESULT hr = enc->device->OpenSharedResource((HANDLE)(uintptr_t)handle, __uuidof(ID3D11Texture2D),
@@ -309,7 +311,8 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		hr = inputTexture->QueryInterface(_uuidof(IDXGIKeyedMutex), reinterpret_cast<void **>(enc->keyedMutex.GetAddressOf()));
 		if (FAILED(hr)) 
 		{
-			enc->inputTexture->Release();
+//			enc->inputTexture->Release();
+			enc->inputTexture.Reset();
 			return -1;
 		}
 

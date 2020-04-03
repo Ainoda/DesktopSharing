@@ -16,6 +16,7 @@ extern "C"
 #include <libavutil/parseutils.h>
 #include <libavutil/opt.h>
 }
+#include "Encoder.h"
 
 struct VideoConfig
 {
@@ -26,7 +27,7 @@ struct VideoConfig
 	uint32_t gop = 25;
 };
 
-class H264Encoder 
+class H264Encoder : public Encoder
 {
 public:
 	H264Encoder & operator=(const H264Encoder &) = delete;

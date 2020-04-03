@@ -11,6 +11,10 @@
 #include "nvenc.h"
 #include "ScreenCapture/DXGIScreenCapture.h"
 
+#define DataFlag_Video 0x01
+#define DataFlag_Audio 0x02
+#define DataFlag_All (DataFlag_Video | DataFlag_Audio)
+
 struct AVConfig
 {
 	uint32_t bitrate = 2000000;
@@ -18,6 +22,7 @@ struct AVConfig
 	uint32_t gop = 25;
 
 	std::string codec = "h264"; // [software codec: "h264"]  [hardware codec: "h264_nvenc"]
+	int dataFlag = DataFlag_All;
 };
 
 class DesktopSharing

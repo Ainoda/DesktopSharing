@@ -160,7 +160,8 @@ int DXGIScreenCapture::createSharedTexture()
 	}
 
 	Microsoft::WRL::ComPtr<IDXGIResource> dxgiResource;
-	hr = m_sharedTexture->QueryInterface(__uuidof(IDXGIResource), reinterpret_cast<void **>(dxgiResource.GetAddressOf()));
+//	hr = m_sharedTexture->QueryInterface(__uuidof(IDXGIResource), reinterpret_cast<void **>(dxgiResource.GetAddressOf()));
+	hr = m_sharedTexture.As(&dxgiResource);
 	if (FAILED(hr))
 	{
 		printf("[DXGIScreenCapture] Failed to query IDXGIResource interface from texture.\n");
@@ -174,7 +175,8 @@ int DXGIScreenCapture::createSharedTexture()
 		return -1;
 	}
 
-	hr = m_sharedTexture->QueryInterface(_uuidof(IDXGIKeyedMutex), reinterpret_cast<void **>(m_keyedMutex.GetAddressOf()));
+//	hr = m_sharedTexture->QueryInterface(_uuidof(IDXGIKeyedMutex), reinterpret_cast<void **>(m_keyedMutex.GetAddressOf()));
+	hr = m_sharedTexture.As(&m_keyedMutex);
 	if (FAILED(hr))
 	{
 		printf("[DXGIScreenCapture] Failed to create key mutex.\n");
@@ -265,7 +267,8 @@ int DXGIScreenCapture::aquireFrame()
 	}
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> outputTexture;
-	hr = dxgiResource->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(outputTexture.GetAddressOf()));
+//	hr = dxgiResource->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(outputTexture.GetAddressOf()));
+	hr = dxgiResource.As(&outputTexture);
 	if (FAILED(hr))
 	{
 		return -1;
@@ -279,7 +282,8 @@ int DXGIScreenCapture::aquireFrame()
 	m_d3d11DeviceContext->CopyResource(m_gdiTexture.Get(), outputTexture.Get());
 	
 	Microsoft::WRL::ComPtr<IDXGISurface1> surface1;
-	hr = m_gdiTexture->QueryInterface(__uuidof(IDXGISurface1), reinterpret_cast<void **>(surface1.GetAddressOf()));
+//	hr = m_gdiTexture->QueryInterface(__uuidof(IDXGISurface1), reinterpret_cast<void **>(surface1.GetAddressOf()));
+	hr = m_gdiTexture.As(&surface1);
 	if (FAILED(hr))
 	{
 		return -1;

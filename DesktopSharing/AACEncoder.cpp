@@ -8,6 +8,7 @@
 #pragma comment(lib,"avutil.lib")
 
 AACEncoder::AACEncoder()
+	: Encoder()
 {
 
 }
@@ -54,9 +55,11 @@ bool AACEncoder::init(struct AudioConfig ac)
 	_aCodecCtx->bit_rate = _audioConfig.bitrate;
 	//_aCodecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
-	if (avcodec_open2(_aCodecCtx, codec, NULL) != 0)
+	auto ret = avcodec_open2(_aCodecCtx, codec, NULL);
+	if (ret != 0)
 	{
 		LOG("avcodec_open2() failed.\n");
+		printError(ret);
 		return false;
 	}
 
@@ -122,6 +125,7 @@ AVPacket* AACEncoder::encodeAudio(const uint8_t *pcm, int samples)
 		if (ret != 0)
 		{
 			LOG("swr_init() failed.\n");
+			printError(ret);
 			return nullptr;
 		}
 
@@ -136,6 +140,7 @@ AVPacket* AACEncoder::encodeAudio(const uint8_t *pcm, int samples)
 			if (ret < 0)
 			{
 				LOG("av_frame_get_buffer() failed.\n");
+				printError(ret);
 				return nullptr;
 			}
 		}
@@ -145,11 +150,12 @@ AVPacket* AACEncoder::encodeAudio(const uint8_t *pcm, int samples)
 	data[0] = (uint8_t *)pcm;
 	data[1] = NULL;
 	int len = swr_convert(_swrCtx, _pcmFrame->data, _pcmFrame->nb_samples,
-							data, _pcmFrame->nb_samples);
+		data, _pcmFrame->nb_samples);
 
 	if (len < 0)
 	{
 		LOG("swr_convert() failed.\n");
+		printError(len);
 		return nullptr;
 	}
 
@@ -171,6 +177,7 @@ AVPacket* AACEncoder::encodeAudio(const uint8_t *pcm, int samples)
 	else if (ret < 0)
 	{
 		LOG("avcodec_receive_packet() failed.");
+		printError(ret);
 		return nullptr;
 	}
 
