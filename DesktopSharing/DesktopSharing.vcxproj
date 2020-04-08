@@ -115,6 +115,8 @@
     <ClCompile Include="NvCodec\NvEncoder\NvEncoderD3D11.cpp" />
     <ClCompile Include="nvenc.cpp" />
     <ClCompile Include="ScreenCapture\DXGIScreenCapture.cpp" />
+    <ClCompile Include="ScreenCapture\DXScreenCapture.cpp" />
+    <ClCompile Include="ScreenCapture\ScreenCapture.cpp" />
     <ClCompile Include="wasapi\WASAPICapture.cpp" />
     <ClCompile Include="wasapi\WASAPIPlayer.cpp" />
     <ClCompile Include="xop\AACSource.cpp" />
@@ -173,6 +175,8 @@
     <ClInclude Include="NvCodec\NvEncoder\NvEncoderD3D11.h" />
     <ClInclude Include="nvenc.h" />
     <ClInclude Include="ScreenCapture\DXGIScreenCapture.h" />
+    <ClInclude Include="ScreenCapture\DXScreenCapture.h" />
+    <ClInclude Include="ScreenCapture\ScreenCapture.h" />
     <ClInclude Include="wasapi\WASAPICapture.h" />
     <ClInclude Include="wasapi\WASAPIPlayer.h" />
     <ClInclude Include="xop\AACSource.h" />

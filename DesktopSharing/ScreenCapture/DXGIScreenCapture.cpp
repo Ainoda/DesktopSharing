@@ -13,7 +13,8 @@
 
 
 DXGIScreenCapture::DXGIScreenCapture()
-	: m_initialized(false)
+	: ScreenCapture()
+	, m_initialized(false)
 	, m_isEnabeld(false)
 	, m_threadPtr(nullptr)
 	, m_textureHandle(nullptr)

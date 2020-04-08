@@ -10,6 +10,7 @@
 #include "AACEncoder.h"
 #include "nvenc.h"
 #include "ScreenCapture/DXGIScreenCapture.h"
+#include "ScreenCapture/DXScreenCapture.h"
 
 #define DataFlag_Video 0x01
 #define DataFlag_Audio 0x02
@@ -66,7 +67,8 @@ private:
 	std::shared_ptr<std::thread> _videoThread;
 	std::shared_ptr<std::thread> _audioThread;
 
-	DXGIScreenCapture _screenCapture;
+//	DXGIScreenCapture _screenCapture;
+	DXScreenCapture _screenCapture;
 };
 
 #endif

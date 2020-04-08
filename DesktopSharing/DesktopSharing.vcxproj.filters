@@ -180,6 +180,12 @@
     <ClCompile Include="Encoder.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ScreenCapture\ScreenCapture.cpp">
+      <Filter>源文件\ScreenCapture</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenCapture\DXScreenCapture.cpp">
+      <Filter>源文件\ScreenCapture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H264Encoder.h">
@@ -364,6 +370,12 @@
     </ClInclude>
     <ClInclude Include="Encoder.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenCapture\ScreenCapture.h">
+      <Filter>源文件\ScreenCapture</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenCapture\DXScreenCapture.h">
+      <Filter>源文件\ScreenCapture</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

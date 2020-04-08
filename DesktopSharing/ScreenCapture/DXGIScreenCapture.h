@@ -15,7 +15,9 @@
 #include <d3d11.h>
 #include <dxgi1_2.h>
 
-class DXGIScreenCapture
+#include "ScreenCapture.h"
+
+class DXGIScreenCapture : public ScreenCapture
 {
 public:
 	DXGIScreenCapture();
@@ -23,23 +25,22 @@ public:
 	DXGIScreenCapture &operator=(const DXGIScreenCapture &) = delete;
 	DXGIScreenCapture(const DXGIScreenCapture &) = delete;
 
-	int init(int displayIndex = 0);
-	int exit();
-	int start();
-	int stop();
+	virtual int init(int displayIndex = 0) override;
+	virtual int exit() override;
+	virtual int start() override;
+	virtual int stop() override;
 
 	inline int getWidth()  { return m_dxgiDesc.ModeDesc.Width; }
 	inline int getHeight() { return m_dxgiDesc.ModeDesc.Height; }
 
-	int captureFrame(std::shared_ptr<uint8_t>& bgraPtr, uint32_t& size);
-	//int captureFrame(ID3D11Device* device, ID3D11Texture2D* texture);	
-	int getTextureHandle(HANDLE* handle, int* lockKey, int* unlockKey);
-	int captureImage(std::string pathname);
+	virtual int captureFrame(std::shared_ptr<uint8_t>& bgraPtr, uint32_t& size) override;
+	virtual int getTextureHandle(HANDLE* handle, int* lockKey, int* unlockKey) override;
+	virtual int captureImage(std::string pathname); override;
 	
 	inline ID3D11Device* getID3D11Device() { return m_d3d11device.Get(); }
 	inline ID3D11DeviceContext* getID3D11DeviceContext() { return m_d3d11DeviceContext.Get(); }
 
-	bool isCapturing() const
+	virtual bool isCapturing() const override
 	{ return m_isEnabeld; }
 
 private:
