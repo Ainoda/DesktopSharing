@@ -1,11 +1,11 @@
-// PHZ
-// 2019-7-22
+// Ainoda
+// 2020-04-08
 
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "DXGIScreenCapture.h"
+#include "DXScreenCapture.h"
 #include <fstream> 
 
 #pragma comment(lib, "dxgi.lib")

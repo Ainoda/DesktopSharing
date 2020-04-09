@@ -186,6 +186,9 @@
     <ClCompile Include="ScreenCapture\DXScreenCapture.cpp">
       <Filter>源文件\ScreenCapture</Filter>
     </ClCompile>
+    <ClCompile Include="ScreenCapture\BBScreenCapture.cpp">
+      <Filter>源文件\ScreenCapture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H264Encoder.h">
@@ -375,6 +378,9 @@
       <Filter>源文件\ScreenCapture</Filter>
     </ClInclude>
     <ClInclude Include="ScreenCapture\DXScreenCapture.h">
+      <Filter>源文件\ScreenCapture</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenCapture\BBScreenCapture.h">
       <Filter>源文件\ScreenCapture</Filter>
     </ClInclude>
   </ItemGroup>

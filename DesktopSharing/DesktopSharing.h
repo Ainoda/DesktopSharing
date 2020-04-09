@@ -11,6 +11,7 @@
 #include "nvenc.h"
 #include "ScreenCapture/DXGIScreenCapture.h"
 #include "ScreenCapture/DXScreenCapture.h"
+#include "ScreenCapture/BBScreenCapture.h"
 
 #define DataFlag_Video 0x01
 #define DataFlag_Audio 0x02
@@ -36,6 +37,7 @@ public:
 
 	bool init(AVConfig *config);
 	void exit();
+
 
 	void start();
 	void stop();
@@ -68,7 +70,8 @@ private:
 	std::shared_ptr<std::thread> _audioThread;
 
 //	DXGIScreenCapture _screenCapture;
-	DXScreenCapture _screenCapture;
+//	DXScreenCapture _screenCapture;
+	BBScreenCapture _screenCapture;
 };
 
 #endif

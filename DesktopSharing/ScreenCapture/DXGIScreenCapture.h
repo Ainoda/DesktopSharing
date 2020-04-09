@@ -35,7 +35,7 @@ public:
 
 	virtual int captureFrame(std::shared_ptr<uint8_t>& bgraPtr, uint32_t& size) override;
 	virtual int getTextureHandle(HANDLE* handle, int* lockKey, int* unlockKey) override;
-	virtual int captureImage(std::string pathname); override;
+	virtual int captureImage(std::string pathname) override;
 	
 	inline ID3D11Device* getID3D11Device() { return m_d3d11device.Get(); }
 	inline ID3D11DeviceContext* getID3D11DeviceContext() { return m_d3d11DeviceContext.Get(); }

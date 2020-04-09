@@ -126,7 +126,7 @@ AVPacket* H264Encoder::encodeVideo(const uint8_t *bgra, uint32_t width, uint32_t
 {
 	if (_swsCtx == nullptr)
 	{
-		_swsCtx = sws_getContext(width, height, AV_PIX_FMT_BGRA, _videoConfig.width, _videoConfig.height,
+		_swsCtx = sws_getContext(width, height, AV_PIX_FMT_BGR24, _videoConfig.width, _videoConfig.height,
 			AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
 		if (_swsCtx == nullptr)
 		{
@@ -156,7 +156,7 @@ AVPacket* H264Encoder::encodeVideo(const uint8_t *bgra, uint32_t width, uint32_t
 	uint8_t* data[AV_NUM_DATA_POINTERS] = { 0 };
 	data[0] = (uint8_t*)bgra;
 	int insize[AV_NUM_DATA_POINTERS] = { 0 };
-	insize[0] = width * 4;
+	insize[0] = width * 3;
 	int outHeight = sws_scale(_swsCtx, data, insize, 0, height, _yuvFrame->data, _yuvFrame->linesize);
 	if (outHeight < 0)
 	{
